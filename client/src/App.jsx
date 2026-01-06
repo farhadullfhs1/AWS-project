@@ -330,6 +330,7 @@ function App() {
     setView('home');
   };
 
+  
   const fetchCart = () => {
     fetch(`${API_URL}/orders/cart/`, { headers: { 'Authorization': `Bearer ${token}` } })
       .then(async res => {
