@@ -3,23 +3,17 @@ import {
   Coffee, ShoppingBag, User, Menu as MenuIcon, X, 
   ChevronRight, Star, MapPin, Phone, Instagram, 
   Facebook, Twitter, Trash2, Plus, Minus, LogOut,
-  LayoutDashboard, Package, Loader2, CreditCard
+  LayoutDashboard, Package, Loader2, CreditCard, CheckCircle
 } from 'lucide-react';
 
 const API_URL = "https://farha17.pythonanywhere.com/api";
-// 3.  **Before you deploy**, you will need to change this to your production URL.
-// * *Pro Tip:* For now, you can leave it as localhost while you test. When you deploy the Backend (e.g., to Render), you will copy that new URL and paste it here before deploying the Frontend (e.g., to Vercel).
 
 // --- MOCK DATA FOR FALLBACK ---
 const MOCK_PRODUCTS = [
-  { id: 1, name: "Signature Espresso", price: 120, category: "Hot Coffee", image: "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&q=80&w=400", desc: "Rich, bold, and intense." },
-  { id: 2, name: "Caramel Cappuccino", price: 150, category: "Hot Coffee", image: "https://images.unsplash.com/photo-1572442388796-11668a67e53d?auto=format&fit=crop&q=80&w=400", desc: "Sweet caramel with frothy milk." },
-  { id: 3, name: "Iced Americano", price: 140, category: "Cold Coffee", image: "https://images.unsplash.com/photo-1517701604599-bb29b5dd7359?auto=format&fit=crop&q=80&w=400", desc: "Chilled perfection for hot days." },
-  { id: 4, name: "Vanilla Latte", price: 160, category: "Hot Coffee", image: "https://images.unsplash.com/photo-1570968992194-79569335af21?auto=format&fit=crop&q=80&w=400", desc: "Smooth espresso with vanilla syrup." },
-  { id: 5, name: "Cold Brew", price: 180, category: "Cold Coffee", image: "https://images.unsplash.com/photo-1461023058943-48dbf13994c6?auto=format&fit=crop&q=80&w=400", desc: "Steeped for 12 hours for smoothness." },
-  { id: 6, name: "Chocolate Muffin", price: 90, category: "Snacks", image: "https://images.unsplash.com/photo-1607958996333-41aef7caefaa?auto=format&fit=crop&q=80&w=400", desc: "Decadent double chocolate delight." },
-  { id: 7, name: "Croissant", price: 110, category: "Snacks", image: "https://images.unsplash.com/photo-1555507036-ab1f4038808a?auto=format&fit=crop&q=80&w=400", desc: "Buttery, flaky, and fresh." },
-  { id: 8, name: "Matcha Latte", price: 170, category: "Tea", image: "https://images.unsplash.com/photo-1515823664972-6d9094ce13d2?auto=format&fit=crop&q=80&w=400", desc: "Premium Japanese green tea latte." },
+  { id: 1, name: "Signature Espresso", price: 120, category: "Hot Coffee", image: "https://images.unsplash.com/photo-1510591509098-f4fdc6d0ff04?auto=format&fit=crop&w=600&q=80", desc: "Rich, bold, and intense." },
+  { id: 2, name: "Caramel Cappuccino", price: 150, category: "Hot Coffee", image: "https://images.unsplash.com/photo-1572442388796-11668a67e53d?auto=format&fit=crop&w=600&q=80", desc: "Sweet caramel with frothy milk." },
+  { id: 3, name: "Iced Americano", price: 140, category: "Cold Coffee", image: "https://images.unsplash.com/photo-1517701604599-bb29b5dd7359?auto=format&fit=crop&w=600&q=80", desc: "Chilled perfection for hot days." },
+  { id: 4, name: "Vanilla Latte", price: 160, category: "Hot Coffee", image: "https://images.unsplash.com/photo-1570968992194-79569335af21?auto=format&fit=crop&w=600&q=80", desc: "Smooth espresso with vanilla syrup." },
 ];
 
 // --- REUSABLE COMPONENTS ---
@@ -74,11 +68,20 @@ const Navbar = ({ view, setView, cartCount, user, onLogout }) => {
   return (
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? 'bg-neutral-950/90 backdrop-blur-md border-b border-neutral-800 py-3' : 'bg-transparent py-5'}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
-        <div onClick={() => setView('home')} className="flex items-center gap-2 cursor-pointer group">
-          <div className="w-10 h-10 bg-amber-600 rounded-full flex items-center justify-center text-white shadow-lg shadow-amber-600/20 group-hover:bg-amber-500 transition-colors">
-            <Coffee size={24} strokeWidth={2.5} />
+        
+        {/* NEW PROFESSIONAL LOGO */}
+        <div onClick={() => setView('home')} className="flex items-center gap-3 cursor-pointer group select-none">
+          <div className="w-10 h-10 bg-gradient-to-br from-amber-500 to-amber-700 rounded-xl rotate-3 flex items-center justify-center text-white shadow-lg shadow-amber-600/20 group-hover:rotate-6 group-hover:shadow-amber-600/40 transition-all duration-300 ease-out">
+            <Coffee size={22} strokeWidth={2.5} className="-rotate-3" />
           </div>
-          <span className="text-xl font-bold text-white tracking-tight">BREW<span className="text-amber-500">HAVEN</span></span>
+          <div className="flex flex-col">
+            <span className="text-xl font-extrabold text-white tracking-tight leading-none font-sans">
+              BREW<span className="text-amber-500">HAVEN</span>
+            </span>
+            <span className="text-[10px] font-medium text-neutral-400 tracking-[0.2em] uppercase leading-none mt-1 group-hover:text-amber-500/80 transition-colors">
+              Coffee Co.
+            </span>
+          </div>
         </div>
 
         <div className="hidden md:flex items-center gap-8">
@@ -385,7 +388,6 @@ function App() {
   const handleCheckout = async () => {
     if (!token) return;
     
-    // --- OFFLINE MODE / MOCK PAYMENT ---
     if (isOffline) {
       const method = prompt("Select Payment Method:\n1. UPI (Google Pay / PhonePe)\n2. Card (Debit/Credit)\nType '1' or '2'", "1");
       if (method === '1' || method === '2') {
@@ -396,9 +398,8 @@ function App() {
       return;
     }
 
-    // --- REAL MODE (Razorpay) ---
     try {
-      // 1. Create Order in Django
+      // 1. Create Order
       const res = await fetch(`${API_URL}/orders/create/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
@@ -408,21 +409,20 @@ function App() {
       
       if (!res.ok) { alert(data.error || "Order failed"); return; }
 
-      // 2. Load Razorpay SDK
+      // 2. Load Razorpay
       const isLoaded = await loadRazorpay();
-      if (!isLoaded) { alert("Razorpay SDK failed to load. Check internet connection."); return; }
+      if (!isLoaded) { alert("Razorpay SDK failed to load."); return; }
 
       // 3. Initiate Payment
       const options = {
-        key: "rzp_test_YOUR_KEY_HERE", // REPLACE THIS with your Razorpay Test Key ID
-        amount: data.total_price * 100, // Amount in paise
+        key: "rzp_test_YOUR_KEY_HERE", 
+        amount: data.total_price * 100,
         currency: "INR",
         name: "BrewHaven Coffee",
         description: "Freshly Brewed Order",
-        order_id: data.razorpay_order_id, // Backend needs to send this
+        order_id: data.razorpay_order_id, 
         handler: function (response) {
             alert(`Payment Successful!\nPayment ID: ${response.razorpay_payment_id}`);
-            // Here you would typically call a backend API to verify signature
             setCart([]);
             setView('orders');
         },
@@ -441,7 +441,6 @@ function App() {
 
     } catch (err) {
       console.error(err);
-      // Fallback if backend doesn't support Razorpay yet
       alert("Backend not configured for Razorpay yet. Order placed via COD.");
       setCart([]);
       setView('orders');
