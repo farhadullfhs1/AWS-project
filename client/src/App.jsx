@@ -6,7 +6,7 @@ import {
   LayoutDashboard, Package, Loader2, CreditCard
 } from 'lucide-react';
 
-const API_URL = "http://127.0.0.1:8000/api";
+const API_URL = "https://farha17.pythonanywhere.com/api";
 // 3.  **Before you deploy**, you will need to change this to your production URL.
 // * *Pro Tip:* For now, you can leave it as localhost while you test. When you deploy the Backend (e.g., to Render), you will copy that new URL and paste it here before deploying the Frontend (e.g., to Vercel).
 
