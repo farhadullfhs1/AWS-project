@@ -14,6 +14,10 @@ const MOCK_PRODUCTS = [
   { id: 2, name: "Caramel Cappuccino", price: 150, category: "Hot Coffee", image: "https://images.unsplash.com/photo-1572442388796-11668a67e53d?auto=format&fit=crop&w=600&q=80", desc: "Sweet caramel with frothy milk." },
   { id: 3, name: "Iced Americano", price: 140, category: "Cold Coffee", image: "https://images.unsplash.com/photo-1517701604599-bb29b5dd7359?auto=format&fit=crop&w=600&q=80", desc: "Chilled perfection for hot days." },
   { id: 4, name: "Vanilla Latte", price: 160, category: "Hot Coffee", image: "https://images.unsplash.com/photo-1570968992194-79569335af21?auto=format&fit=crop&w=600&q=80", desc: "Smooth espresso with vanilla syrup." },
+  { id: 5, name: "Cold Brew", price: 180, category: "Cold Coffee", image: "https://images.unsplash.com/photo-1461023058943-48dbf13994c6?auto=format&fit=crop&w=600&q=80", desc: "Steeped for 12 hours for smoothness." },
+  { id: 6, name: "Chocolate Muffin", price: 90, category: "Snacks", image: "https://images.unsplash.com/photo-1607958996333-41aef7caefaa?auto=format&fit=crop&w=600&q=80", desc: "Decadent double chocolate delight." },
+  { id: 7, name: "Croissant", price: 110, category: "Snacks", image: "https://images.unsplash.com/photo-1555507036-ab1f4038808a?auto=format&fit=crop&w=600&q=80", desc: "Buttery, flaky, and baked fresh daily." },
+  { id: 8, name: "Matcha Latte", price: 170, category: "Tea", image: "https://images.unsplash.com/photo-1515823664972-6d9094ce13d2?auto=format&fit=crop&w=600&q=80", desc: "Premium Japanese green tea with steamed milk." },
 ];
 
 // --- REUSABLE COMPONENTS ---
@@ -161,7 +165,7 @@ const Menu = ({ products, addToCart, isOffline }) => (
     <h1 className="text-4xl font-bold text-white mb-4 text-center">Our Menu</h1>
     {isOffline && (
       <div className="max-w-md mx-auto mb-8 bg-amber-500/10 border border-amber-500/20 text-amber-500 px-4 py-2 rounded-lg text-center text-sm">
-        Running in Preview Mode (Mock Data)
+        Running in Preview Mode (Mock Data) - Check Console for API Error
       </div>
     )}
     
@@ -356,7 +360,11 @@ function App() {
     fetch(`${API_URL}/products/`)
       .then(res => { if (!res.ok) throw new Error("API Failed"); return res.json(); })
       .then(data => { if (Array.isArray(data)) { setProducts(data); setIsOffline(false); } else { throw new Error("Invalid Data"); } })
-      .catch(err => { console.warn("Backend not detected. Switching to Mock Mode."); setProducts(MOCK_PRODUCTS); setIsOffline(true); });
+      .catch(err => { 
+        console.warn("Backend not detected. Switching to Mock Mode. Error:", err); 
+        setProducts(MOCK_PRODUCTS); 
+        setIsOffline(true); 
+      });
   }, []);
 
   useEffect(() => {
