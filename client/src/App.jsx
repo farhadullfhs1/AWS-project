@@ -218,6 +218,7 @@ const Cart = ({ cart, checkout, setView }) => {
 };
 
 const Auth = ({ setView, onLogin }) => {
+  const [isRegistering, setIsRegistering] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -227,37 +228,77 @@ const Auth = ({ setView, onLogin }) => {
     e.preventDefault();
     setLoading(true);
     setError("");
+    
+    // Choose endpoint based on mode
+    const endpoint = isRegistering ? `${API_URL}/auth/register/` : `${API_URL}/auth/login/`;
+
     try {
-      const res = await fetch(`${API_URL}/auth/login/`, {
+      const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password })
       });
+
       if (res.status === 401 || res.status === 400) {
         let data = {}; try { data = await res.json(); } catch (e) {}
-        setError(data.detail || "Invalid credentials. Please check your username and password.");
+        setError(data.detail || data.error || "Invalid credentials or User exists.");
         setLoading(false); return; 
       }
+      
       if (!res.ok) throw new Error("API Failed");
+      
       const data = await res.json();
-      onLogin(data.access, username);
+      
+      if (isRegistering) {
+        // After successful registration, switch to login or auto-login
+        // Here we just switch to login view for simplicity/security
+        setIsRegistering(false);
+        setError("Account created! Please log in.");
+        setLoading(false);
+      } else {
+        // Login success
+        onLogin(data.access, username);
+      }
+
     } catch (err) {
       console.warn("Network error or Backend down:", err);
+      // Fallback for demo
       setTimeout(() => { onLogin("mock-token-123", username || "Guest User"); }, 1000);
-    } finally { setLoading(false); }
+    } finally { 
+      if (!isRegistering) setLoading(false); // keep loading false if we just switched views
+    }
   };
 
   return (
     <div className="min-h-screen pt-20 px-6 flex items-center justify-center animate-fade-in">
       <div className="w-full max-w-md bg-neutral-900 border border-neutral-800 p-8 rounded-2xl shadow-2xl">
-        <h1 className="text-3xl font-bold text-white mb-2 text-center">Welcome Back</h1>
-        <p className="text-neutral-400 text-sm text-center mb-8">Login to order your favorite coffee</p>
-        {error && <div className="bg-red-500/10 text-red-500 p-3 rounded mb-4 text-sm text-center">{error}</div>}
+        <h1 className="text-3xl font-bold text-white mb-2 text-center">
+          {isRegistering ? 'Create Account' : 'Welcome Back'}
+        </h1>
+        <p className="text-neutral-400 text-sm text-center mb-8">
+          {isRegistering ? 'Join the community to start ordering' : 'Login to order your favorite coffee'}
+        </p>
+        
+        {error && <div className={`p-3 rounded mb-4 text-sm text-center ${error.includes('created') ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'}`}>{error}</div>}
+        
         <form onSubmit={handleSubmit}>
           <Input label="Username" value={username} onChange={e => setUsername(e.target.value)} placeholder="username" />
           <Input label="Password" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" />
-          <Button type="submit" className="w-full mt-6" disabled={loading}>{loading ? <Loader2 className="animate-spin"/> : 'Log In'}</Button>
+          
+          <Button type="submit" className="w-full mt-6" disabled={loading}>
+            {loading ? <Loader2 className="animate-spin"/> : (isRegistering ? 'Sign Up' : 'Log In')}
+          </Button>
         </form>
+
+        <div className="mt-6 text-center text-sm text-neutral-500">
+          {isRegistering ? 'Already have an account? ' : "Don't have an account? "}
+          <button 
+            onClick={() => { setIsRegistering(!isRegistering); setError(""); }} 
+            className="text-amber-500 hover:underline font-medium"
+          >
+            {isRegistering ? 'Log In' : 'Sign Up'}
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -330,7 +371,6 @@ function App() {
     setView('home');
   };
 
-  
   const fetchCart = () => {
     fetch(`${API_URL}/orders/cart/`, { headers: { 'Authorization': `Bearer ${token}` } })
       .then(async res => {
@@ -416,7 +456,7 @@ function App() {
 
       // 3. Initiate Payment
       const options = {
-        key: "rzp_test_S0ZlxoAK2mHV8C", 
+        key: "rzp_test_YOUR_KEY_HERE", 
         amount: data.total_price * 100,
         currency: "INR",
         name: "BrewHaven Coffee",
