@@ -416,7 +416,7 @@ function App() {
 
       // 3. Initiate Payment
       const options = {
-        key: "rzp_test_YOUR_KEY_HERE", 
+        key: "rzp_test_S0ZlxoAK2mHV8C", 
         amount: data.total_price * 100,
         currency: "INR",
         name: "BrewHaven Coffee",
