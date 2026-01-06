@@ -8,8 +8,8 @@ from orders.models import Order
 # 1. Go to https://dashboard.razorpay.com/app/keys
 # 2. Generate Test Keys
 # 3. Paste them below
-RAZORPAY_KEY_ID = "rzp_test_YOUR_KEY_HERE"
-RAZORPAY_KEY_SECRET = "YOUR_SECRET_HERE"
+RAZORPAY_KEY_ID = "rzp_test_S0ZlxoAK2mHV8C"
+RAZORPAY_KEY_SECRET = "uKdyyXVedgC0gUoF5ZHsHoBB"
 
 # Initialize Client
 client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
