@@ -3,10 +3,11 @@ import {
   Coffee, ShoppingBag, User, Menu as MenuIcon, X, 
   ChevronRight, Star, MapPin, Phone, Instagram, 
   Facebook, Twitter, Trash2, Plus, Minus, LogOut,
-  LayoutDashboard, Package, Loader2, CreditCard, CheckCircle
+  LayoutDashboard, Package, Loader2, CreditCard, CheckCircle, Ban
 } from 'lucide-react';
 
-const API_URL = "https://farha17.pythonanywhere.com/api";
+const API_URL = "https://farha17.pythonanywhere.com/api"; 
+// Note: If testing locally, switch to "http://127.0.0.1:8000/api"
 
 // --- MOCK DATA FOR FALLBACK ---
 const MOCK_PRODUCTS = [
@@ -14,10 +15,6 @@ const MOCK_PRODUCTS = [
   { id: 2, name: "Caramel Cappuccino", price: 150, category: "Hot Coffee", image: "https://images.unsplash.com/photo-1572442388796-11668a67e53d?auto=format&fit=crop&w=600&q=80", desc: "Sweet caramel with frothy milk." },
   { id: 3, name: "Iced Americano", price: 140, category: "Cold Coffee", image: "https://images.unsplash.com/photo-1517701604599-bb29b5dd7359?auto=format&fit=crop&w=600&q=80", desc: "Chilled perfection for hot days." },
   { id: 4, name: "Vanilla Latte", price: 160, category: "Hot Coffee", image: "https://images.unsplash.com/photo-1570968992194-79569335af21?auto=format&fit=crop&w=600&q=80", desc: "Smooth espresso with vanilla syrup." },
-  { id: 5, name: "Cold Brew", price: 180, category: "Cold Coffee", image: "https://images.unsplash.com/photo-1461023058943-48dbf13994c6?auto=format&fit=crop&w=600&q=80", desc: "Steeped for 12 hours for smoothness." },
-  { id: 6, name: "Chocolate Muffin", price: 90, category: "Snacks", image: "https://images.unsplash.com/photo-1607958996333-41aef7caefaa?auto=format&fit=crop&w=600&q=80", desc: "Decadent double chocolate delight." },
-  { id: 7, name: "Croissant", price: 110, category: "Snacks", image: "https://images.unsplash.com/photo-1555507036-ab1f4038808a?auto=format&fit=crop&w=600&q=80", desc: "Buttery, flaky, and baked fresh daily." },
-  { id: 8, name: "Matcha Latte", price: 170, category: "Tea", image: "https://images.unsplash.com/photo-1515823664972-6d9094ce13d2?auto=format&fit=crop&w=600&q=80", desc: "Premium Japanese green tea with steamed milk." },
 ];
 
 // --- REUSABLE COMPONENTS ---
@@ -51,6 +48,7 @@ const Badge = ({ children, color = "amber" }) => {
   const colors = {
     amber: "bg-amber-500/10 text-amber-500 border-amber-500/20",
     green: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
+    red: "bg-red-500/10 text-red-500 border-red-500/20",
     blue: "bg-blue-500/10 text-blue-500 border-blue-500/20",
     neutral: "bg-neutral-800 text-neutral-400 border-neutral-700"
   };
@@ -73,7 +71,7 @@ const Navbar = ({ view, setView, cartCount, user, onLogout }) => {
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? 'bg-neutral-950/90 backdrop-blur-md border-b border-neutral-800 py-3' : 'bg-transparent py-5'}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
         
-        {/* NEW PROFESSIONAL LOGO */}
+        {/* LOGO */}
         <div onClick={() => setView('home')} className="flex items-center gap-3 cursor-pointer group select-none">
           <div className="w-10 h-10 bg-gradient-to-br from-amber-500 to-amber-700 rounded-xl rotate-3 flex items-center justify-center text-white shadow-lg shadow-amber-600/20 group-hover:rotate-6 group-hover:shadow-amber-600/40 transition-all duration-300 ease-out">
             <Coffee size={22} strokeWidth={2.5} className="-rotate-3" />
@@ -112,13 +110,11 @@ const Navbar = ({ view, setView, cartCount, user, onLogout }) => {
           </button>
         </div>
         
-        {/* Mobile Menu Btn */}
         <button className="md:hidden text-white" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
           {isMobileMenuOpen ? <X /> : <MenuIcon />}
         </button>
       </div>
 
-      {/* Mobile Menu */}
       {isMobileMenuOpen && (
         <div className="md:hidden bg-neutral-900 border-b border-neutral-800 absolute w-full px-4 py-4 flex flex-col gap-4">
           <button onClick={() => { setView('home'); setIsMobileMenuOpen(false); }} className="text-left text-white py-2">Home</button>
@@ -165,7 +161,7 @@ const Menu = ({ products, addToCart, isOffline }) => (
     <h1 className="text-4xl font-bold text-white mb-4 text-center">Our Menu</h1>
     {isOffline && (
       <div className="max-w-md mx-auto mb-8 bg-amber-500/10 border border-amber-500/20 text-amber-500 px-4 py-2 rounded-lg text-center text-sm">
-        Running in Preview Mode (Mock Data) - Check Console for API Error
+        Running in Preview Mode (Mock Data)
       </div>
     )}
     
@@ -189,7 +185,7 @@ const Menu = ({ products, addToCart, isOffline }) => (
   </div>
 );
 
-const Cart = ({ cart, checkout, setView }) => {
+const Cart = ({ cart, checkout, removeFromCart, setView }) => {
   const safeCart = Array.isArray(cart) ? cart : [];
   if (safeCart.length === 0) return <div className="min-h-screen pt-24 flex items-center justify-center text-neutral-500 flex-col"><ShoppingBag size={48} className="mb-4"/><p>Your cart is empty.</p><Button onClick={() => setView('menu')} className="mt-4">Go to Menu</Button></div>;
   const total = safeCart.reduce((acc, item) => acc + (parseFloat(item.product_price) * item.quantity), 0);
@@ -200,14 +196,19 @@ const Cart = ({ cart, checkout, setView }) => {
       <div className="grid lg:grid-cols-3 gap-12">
         <div className="lg:col-span-2 space-y-4">
           {safeCart.map(item => (
-            <div key={item.id} className="bg-neutral-900 border border-neutral-800 rounded-xl p-4 flex gap-4 items-center">
+            <div key={item.id} className="bg-neutral-900 border border-neutral-800 rounded-xl p-4 flex gap-4 items-center group">
               <div className="w-20 h-20 bg-neutral-800 rounded-lg flex items-center justify-center text-neutral-600"><Coffee/></div>
               <div className="flex-1">
                 <div className="flex justify-between mb-1">
                   <h3 className="font-bold text-white">{item.product_name}</h3>
                   <span className="font-bold text-white">₹{(item.product_price * item.quantity).toFixed(2)}</span>
                 </div>
-                <div className="text-sm text-neutral-400">Qty: {item.quantity}</div>
+                <div className="flex justify-between items-center">
+                  <div className="text-sm text-neutral-400">Qty: {item.quantity}</div>
+                  <button onClick={() => removeFromCart(item.id)} className="text-neutral-600 hover:text-red-500 p-2 transition-colors" title="Remove Item">
+                    <Trash2 size={18} />
+                  </button>
+                </div>
               </div>
             </div>
           ))}
@@ -232,8 +233,6 @@ const Auth = ({ setView, onLogin }) => {
     e.preventDefault();
     setLoading(true);
     setError("");
-    
-    // Choose endpoint based on mode
     const endpoint = isRegistering ? `${API_URL}/auth/register/` : `${API_URL}/auth/login/`;
 
     try {
@@ -250,68 +249,45 @@ const Auth = ({ setView, onLogin }) => {
       }
       
       if (!res.ok) throw new Error("API Failed");
-      
       const data = await res.json();
       
       if (isRegistering) {
-        // After successful registration, switch to login or auto-login
-        // Here we just switch to login view for simplicity/security
         setIsRegistering(false);
         setError("Account created! Please log in.");
         setLoading(false);
       } else {
-        // Login success
         onLogin(data.access, username);
       }
-
     } catch (err) {
       console.warn("Network error or Backend down:", err);
-      // Fallback for demo
       setTimeout(() => { onLogin("mock-token-123", username || "Guest User"); }, 1000);
-    } finally { 
-      if (!isRegistering) setLoading(false); // keep loading false if we just switched views
-    }
+    } finally { if (!isRegistering) setLoading(false); }
   };
 
   return (
     <div className="min-h-screen pt-20 px-6 flex items-center justify-center animate-fade-in">
       <div className="w-full max-w-md bg-neutral-900 border border-neutral-800 p-8 rounded-2xl shadow-2xl">
-        <h1 className="text-3xl font-bold text-white mb-2 text-center">
-          {isRegistering ? 'Create Account' : 'Welcome Back'}
-        </h1>
-        <p className="text-neutral-400 text-sm text-center mb-8">
-          {isRegistering ? 'Join the community to start ordering' : 'Login to order your favorite coffee'}
-        </p>
-        
+        <h1 className="text-3xl font-bold text-white mb-2 text-center">{isRegistering ? 'Create Account' : 'Welcome Back'}</h1>
+        <p className="text-neutral-400 text-sm text-center mb-8">{isRegistering ? 'Join the community to start ordering' : 'Login to order your favorite coffee'}</p>
         {error && <div className={`p-3 rounded mb-4 text-sm text-center ${error.includes('created') ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'}`}>{error}</div>}
-        
         <form onSubmit={handleSubmit}>
           <Input label="Username" value={username} onChange={e => setUsername(e.target.value)} placeholder="username" />
           <Input label="Password" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" />
-          
-          <Button type="submit" className="w-full mt-6" disabled={loading}>
-            {loading ? <Loader2 className="animate-spin"/> : (isRegistering ? 'Sign Up' : 'Log In')}
-          </Button>
+          <Button type="submit" className="w-full mt-6" disabled={loading}>{loading ? <Loader2 className="animate-spin"/> : (isRegistering ? 'Sign Up' : 'Log In')}</Button>
         </form>
-
         <div className="mt-6 text-center text-sm text-neutral-500">
           {isRegistering ? 'Already have an account? ' : "Don't have an account? "}
-          <button 
-            onClick={() => { setIsRegistering(!isRegistering); setError(""); }} 
-            className="text-amber-500 hover:underline font-medium"
-          >
-            {isRegistering ? 'Log In' : 'Sign Up'}
-          </button>
+          <button onClick={() => { setIsRegistering(!isRegistering); setError(""); }} className="text-amber-500 hover:underline font-medium">{isRegistering ? 'Log In' : 'Sign Up'}</button>
         </div>
       </div>
     </div>
   );
 };
 
-const Orders = ({ token, isOffline }) => {
+const Orders = ({ token, isOffline, cancelOrder }) => {
   const [orders, setOrders] = useState([]);
 
-  useEffect(() => {
+  const fetchOrders = () => {
     if (!token) return;
     fetch(`${API_URL}/orders/history/`, { headers: { 'Authorization': `Bearer ${token}` } })
       .then(res => { if (!res.ok) throw new Error("API Failed"); return res.json(); })
@@ -321,7 +297,16 @@ const Orders = ({ token, isOffline }) => {
           setOrders([ { id: 99, date: "2024-02-20", total: 450, status: 'Delivered', items: [{product_name: "Signature Espresso", quantity: 2, price: 240}] } ]);
         }
       });
+  };
+
+  useEffect(() => {
+    fetchOrders();
   }, [token, isOffline]);
+
+  const handleCancel = async (id) => {
+    await cancelOrder(id);
+    fetchOrders(); // Refresh list after cancel
+  };
 
   return (
     <div className="min-h-screen pt-28 pb-12 px-6 max-w-4xl mx-auto animate-fade-in">
@@ -331,7 +316,14 @@ const Orders = ({ token, isOffline }) => {
           <div key={order.id} className="bg-neutral-900 border border-neutral-800 rounded-xl p-6">
             <div className="flex justify-between items-center mb-4">
               <div><span className="text-lg font-bold text-white block">Order #{order.id}</span><span className="text-neutral-500 text-sm">{order.date}</span></div>
-              <Badge color={order.status === 'Delivered' ? 'green' : 'amber'}>{order.status}</Badge>
+              <div className="flex items-center gap-3">
+                <Badge color={order.status === 'Delivered' ? 'green' : order.status === 'Cancelled' ? 'red' : 'amber'}>{order.status}</Badge>
+                {order.status === 'Processing' && (
+                  <button onClick={() => handleCancel(order.id)} className="text-neutral-500 hover:text-red-500 text-sm border border-neutral-700 px-3 py-1 rounded hover:border-red-500 transition-all flex items-center gap-1">
+                    <Ban size={14}/> Cancel
+                  </button>
+                )}
+              </div>
             </div>
             <div className="border-t border-neutral-800 pt-4">
               {order.items.map((item, i) => (
@@ -360,16 +352,10 @@ function App() {
     fetch(`${API_URL}/products/`)
       .then(res => { if (!res.ok) throw new Error("API Failed"); return res.json(); })
       .then(data => { if (Array.isArray(data)) { setProducts(data); setIsOffline(false); } else { throw new Error("Invalid Data"); } })
-      .catch(err => { 
-        console.warn("Backend not detected. Switching to Mock Mode. Error:", err); 
-        setProducts(MOCK_PRODUCTS); 
-        setIsOffline(true); 
-      });
+      .catch(err => { console.warn("Backend not detected. Switching to Mock Mode.", err); setProducts(MOCK_PRODUCTS); setIsOffline(true); });
   }, []);
 
-  useEffect(() => {
-    if (token && !isOffline) fetchCart();
-  }, [token, isOffline]);
+  useEffect(() => { if (token && !isOffline) fetchCart(); }, [token, isOffline]);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -422,7 +408,40 @@ function App() {
     } catch (err) { alert("Failed to add to cart"); }
   };
 
-  // --- RAZORPAY & INDIAN PAYMENTS LOGIC ---
+  // --- NEW: Remove from Cart ---
+  const removeFromCart = async (itemId) => {
+    if (isOffline) {
+      setCart(prev => prev.filter(item => item.id !== itemId));
+      return;
+    }
+    
+    try {
+      const res = await fetch(`${API_URL}/orders/cart/remove/${itemId}/`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) fetchCart();
+    } catch (err) { console.error("Remove failed", err); }
+  };
+
+  // --- NEW: Cancel Order ---
+  const cancelOrder = async (orderId) => {
+    if (isOffline) { alert("Cannot cancel in mock mode"); return; }
+    
+    if (!confirm("Are you sure you want to cancel this order?")) return;
+
+    try {
+      const res = await fetch(`${API_URL}/orders/cancel/${orderId}/`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        alert("Order Cancelled Successfully");
+      } else {
+        alert("Could not cancel order (It might already be delivered)");
+      }
+    } catch (err) { console.error("Cancel failed", err); }
+  };
 
   const loadRazorpay = () => {
     return new Promise((resolve) => {
@@ -436,19 +455,9 @@ function App() {
 
   const handleCheckout = async () => {
     if (!token) return;
-    
-    if (isOffline) {
-      const method = prompt("Select Payment Method:\n1. UPI (Google Pay / PhonePe)\n2. Card (Debit/Credit)\nType '1' or '2'", "1");
-      if (method === '1' || method === '2') {
-         alert(`Payment Successful via ${method === '1' ? 'UPI' : 'Card'}! (Mock Simulation)`);
-         setCart([]);
-         setView('orders');
-      }
-      return;
-    }
+    if (isOffline) { alert("Order placed! (Mock Mode)"); setCart([]); setView('orders'); return; }
 
     try {
-      // 1. Create Order
       const res = await fetch(`${API_URL}/orders/create/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
@@ -458,11 +467,9 @@ function App() {
       
       if (!res.ok) { alert(data.error || "Order failed"); return; }
 
-      // 2. Load Razorpay
       const isLoaded = await loadRazorpay();
       if (!isLoaded) { alert("Razorpay SDK failed to load."); return; }
 
-      // 3. Initiate Payment
       const options = {
         key: "rzp_test_YOUR_KEY_HERE", 
         amount: data.total_price * 100,
@@ -480,9 +487,7 @@ function App() {
             email: "customer@example.com",
             contact: "9999999999"
         },
-        theme: {
-            color: "#d97706"
-        }
+        theme: { color: "#d97706" }
       };
       
       const rzp1 = new window.Razorpay(options);
@@ -500,9 +505,9 @@ function App() {
     switch(view) {
       case 'home': return <Home setView={setView} />;
       case 'menu': return <Menu products={products} addToCart={addToCart} isOffline={isOffline} />;
-      case 'cart': return <Cart cart={cart} checkout={handleCheckout} setView={setView} />;
+      case 'cart': return <Cart cart={cart} checkout={handleCheckout} removeFromCart={removeFromCart} setView={setView} />;
       case 'login': return <Auth setView={setView} onLogin={handleLogin} />;
-      case 'orders': return <Orders token={token} isOffline={isOffline} />;
+      case 'orders': return <Orders token={token} isOffline={isOffline} cancelOrder={cancelOrder} />;
       default: return <Home setView={setView} />;
     }
   };
