@@ -15,6 +15,10 @@ const MOCK_PRODUCTS = [
   { id: 2, name: "Caramel Cappuccino", price: 150, category: "Hot Coffee", image: "https://images.unsplash.com/photo-1572442388796-11668a67e53d?auto=format&fit=crop&w=600&q=80", desc: "Sweet caramel with frothy milk." },
   { id: 3, name: "Iced Americano", price: 140, category: "Cold Coffee", image: "https://images.unsplash.com/photo-1517701604599-bb29b5dd7359?auto=format&fit=crop&w=600&q=80", desc: "Chilled perfection for hot days." },
   { id: 4, name: "Vanilla Latte", price: 160, category: "Hot Coffee", image: "https://images.unsplash.com/photo-1570968992194-79569335af21?auto=format&fit=crop&w=600&q=80", desc: "Smooth espresso with vanilla syrup." },
+  { id: 5, name: "Cold Brew", price: 180, category: "Cold Coffee", image: "https://images.unsplash.com/photo-1461023058943-48dbf13994c6?auto=format&fit=crop&w=600&q=80", desc: "Steeped for 12 hours for smoothness." },
+  { id: 6, name: "Chocolate Muffin", price: 90, category: "Snacks", image: "https://images.unsplash.com/photo-1607958996333-41aef7caefaa?auto=format&fit=crop&w=600&q=80", desc: "Decadent double chocolate delight." },
+  { id: 7, name: "Croissant", price: 110, category: "Snacks", image: "https://images.unsplash.com/photo-1555507036-ab1f4038808a?auto=format&fit=crop&w=600&q=80", desc: "Buttery, flaky, and baked fresh daily." },
+  { id: 8, name: "Matcha Latte", price: 170, category: "Tea", image: "https://images.unsplash.com/photo-1515823664972-6d9094ce13d2?auto=format&fit=crop&w=600&q=80", desc: "Premium Japanese green tea with steamed milk." },
 ];
 
 // --- REUSABLE COMPONENTS ---
@@ -161,7 +165,7 @@ const Menu = ({ products, addToCart, isOffline }) => (
     <h1 className="text-4xl font-bold text-white mb-4 text-center">Our Menu</h1>
     {isOffline && (
       <div className="max-w-md mx-auto mb-8 bg-amber-500/10 border border-amber-500/20 text-amber-500 px-4 py-2 rounded-lg text-center text-sm">
-        Running in Preview Mode (Mock Data)
+        Running in Preview Mode (Mock Data) - Check Console (F12) for API Error
       </div>
     )}
     
@@ -443,6 +447,8 @@ function App() {
     } catch (err) { console.error("Cancel failed", err); }
   };
 
+  // --- RAZORPAY & INDIAN PAYMENTS LOGIC ---
+
   const loadRazorpay = () => {
     return new Promise((resolve) => {
       const script = document.createElement('script');
@@ -458,6 +464,7 @@ function App() {
     if (isOffline) { alert("Order placed! (Mock Mode)"); setCart([]); setView('orders'); return; }
 
     try {
+      // 1. Create Order
       const res = await fetch(`${API_URL}/orders/create/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
@@ -471,9 +478,9 @@ function App() {
       if (!isLoaded) { alert("Razorpay SDK failed to load."); return; }
 
       const options = {
-        key: "rzp_test_YOUR_KEY_HERE", 
-        amount: data.total_price * 100,
-        currency: "INR",
+        key: data.key || "rzp_test_YOUR_KEY_HERE", // Use key from backend if available
+        amount: data.amount,
+        currency: data.currency,
         name: "BrewHaven Coffee",
         description: "Freshly Brewed Order",
         order_id: data.razorpay_order_id, 
@@ -481,6 +488,21 @@ function App() {
             alert(`Payment Successful!\nPayment ID: ${response.razorpay_payment_id}`);
             setCart([]);
             setView('orders');
+        },
+        modal: {
+            ondismiss: async function() {
+                // User closed the popup without paying.
+                if (confirm("Payment was cancelled. Do you want to cancel this order?")) {
+                    await fetch(`${API_URL}/orders/cancel/${data.order_id}/`, {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    alert("Order cancelled.");
+                } else {
+                    setCart([]); 
+                    setView('orders');
+                }
+            }
         },
         prefill: {
             name: user.username,
@@ -491,6 +513,14 @@ function App() {
       };
       
       const rzp1 = new window.Razorpay(options);
+      rzp1.on('payment.failed', async function (response){
+            alert(`Payment Failed: ${response.error.description}`);
+            // Auto-cancel order on failure
+            await fetch(`${API_URL}/orders/cancel/${data.order_id}/`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+      });
       rzp1.open();
 
     } catch (err) {
