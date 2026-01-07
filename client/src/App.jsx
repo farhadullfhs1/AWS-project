@@ -433,17 +433,15 @@ function App() {
   const cancelOrder = async (orderId) => {
     if (isOffline) { alert("Cannot cancel in mock mode"); return; }
     
-    if (!confirm("Are you sure you want to cancel this order?")) return;
-
     try {
       const res = await fetch(`${API_URL}/orders/cancel/${orderId}/`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
-        alert("Order Cancelled Successfully");
+        // Success silently
       } else {
-        alert("Could not cancel order (It might already be delivered)");
+        alert("Could not cancel order");
       }
     } catch (err) { console.error("Cancel failed", err); }
   };
@@ -475,33 +473,47 @@ function App() {
       
       if (!res.ok) { alert(data.error || "Order failed"); return; }
 
+      // 2. Fetch Razorpay Order ID from Backend (Fixes 'Oops' Error)
+      const payRes = await fetch(`${API_URL}/payments/checkout/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ order_id: data.order_id })
+      });
+      
+      if (!payRes.ok) {
+        // If payment setup fails (e.g. invalid keys), Cancel Order immediately
+        await cancelOrder(data.order_id);
+        alert("Payment Gateway Error. Order cancelled.");
+        return;
+      }
+
+      const payData = await payRes.json();
+
       const isLoaded = await loadRazorpay();
       if (!isLoaded) { alert("Razorpay SDK failed to load."); return; }
 
+      let isPaymentSuccess = false;
+
       const options = {
-        key: data.key || "rzp_test_YOUR_KEY_HERE", // Use key from backend if available
-        amount: data.amount,
-        currency: data.currency,
+        key: payData.key, 
+        amount: payData.amount,
+        currency: payData.currency,
         name: "BrewHaven Coffee",
-        description: "Freshly Brewed Order",
-        order_id: data.razorpay_order_id, 
+        description: "Order #" + data.order_id,
+        order_id: payData.razorpay_order_id, // Use REAL ID from backend
         handler: function (response) {
+            isPaymentSuccess = true;
             alert(`Payment Successful!\nPayment ID: ${response.razorpay_payment_id}`);
             setCart([]);
             setView('orders');
         },
         modal: {
             ondismiss: async function() {
-                // User closed the popup without paying.
-                if (confirm("Payment was cancelled. Do you want to cancel this order?")) {
-                    await fetch(`${API_URL}/orders/cancel/${data.order_id}/`, {
-                        method: 'POST',
-                        headers: { 'Authorization': `Bearer ${token}` }
-                    });
-                    alert("Order cancelled.");
-                } else {
-                    setCart([]); 
-                    setView('orders');
+                // If user closes popup without success, AUTO CANCEL
+                if (!isPaymentSuccess) {
+                    await cancelOrder(data.order_id);
+                    // Don't alert user, just clean up silently or show toast
+                    console.log("Payment cancelled by user. Order removed.");
                 }
             }
         },
@@ -514,21 +526,18 @@ function App() {
       };
       
       const rzp1 = new window.Razorpay(options);
+      
       rzp1.on('payment.failed', async function (response){
+            // If payment specifically fails (e.g. card declined)
+            await cancelOrder(data.order_id);
             alert(`Payment Failed: ${response.error.description}`);
-            // Auto-cancel order on failure
-            await fetch(`${API_URL}/orders/cancel/${data.order_id}/`, {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
       });
+      
       rzp1.open();
 
     } catch (err) {
       console.error(err);
-      alert("Backend not configured for Razorpay yet. Order placed via COD.");
-      setCart([]);
-      setView('orders');
+      alert("Checkout Error. Please try again.");
     }
   };
 
