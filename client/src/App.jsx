@@ -313,9 +313,10 @@ const Orders = ({ token, isOffline, cancelOrder }) => {
   };
 
   return (
-    <div className="min-h-screen pt-28 pb-12 px-6 max-w-4xl mx-auto animate-fade-in">
+    <div className="min-h-screen pt-28 pb-12 px-6 max-w-4xl mx-auto animate-fade-in flex flex-col h-full">
       <h1 className="text-3xl font-bold text-white mb-8">Order History</h1>
-      <div className="space-y-4">
+      {/* Scrollable Container Fix */}
+      <div className="space-y-4 overflow-y-auto flex-1 max-h-[70vh] pr-2 custom-scrollbar">
         {orders.length === 0 ? <p className="text-neutral-500">No orders found.</p> : orders.map(order => (
           <div key={order.id} className="bg-neutral-900 border border-neutral-800 rounded-xl p-6">
             <div className="flex justify-between items-center mb-4">
