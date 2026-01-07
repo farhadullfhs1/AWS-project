@@ -488,6 +488,13 @@ function App() {
       }
 
       const payData = await payRes.json();
+      console.log("Razorpay Data from Backend:", payData); // Added Log
+
+      if (!payData.key || !payData.razorpay_order_id) {
+          alert("Invalid Payment Data received from Server. Check Keys.");
+          await cancelOrder(data.order_id);
+          return;
+      }
 
       const isLoaded = await loadRazorpay();
       if (!isLoaded) { alert("Razorpay SDK failed to load."); return; }
