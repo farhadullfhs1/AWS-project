@@ -1,23 +1,22 @@
 import razorpay
+import os
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from orders.models import Order
 
-# --- CONFIGURATION ---
-# 1. Go to https://dashboard.razorpay.com/app/keys
-# 2. Generate Test Keys
-# 3. Paste them below
-RAZORPAY_KEY_ID = "rzp_test_S0ZlxoAK2mHV8C"
-RAZORPAY_KEY_SECRET = "uKdyyXVedgC0gUoF5ZHsHoBB"
+RAZORPAY_KEY_ID = os.environ.get("RAZORPAY_KEY_ID", "")
+RAZORPAY_KEY_SECRET = os.environ.get("RAZORPAY_KEY_SECRET", "")
 
-# Initialize Client
-client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
+client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET)) if RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET else None
 
 class CheckoutView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
+        if not client:
+            return Response({"error": "Payment gateway is not configured"}, status=503)
+
         order_id = request.data.get('order_id')
         try:
             # Get the order belonging to the user

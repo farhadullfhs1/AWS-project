@@ -15,4 +15,5 @@ client/node_modules/
 dist/
 build/
 .env
+.aws/
 .DS_Store

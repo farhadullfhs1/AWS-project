@@ -5,6 +5,8 @@ class Product(models.Model):
         ('Hot Coffee', 'Hot Coffee'),
         ('Cold Coffee', 'Cold Coffee'),
         ('Tea', 'Tea'),
+        ('Bakery', 'Bakery'),
+        ('Breakfast', 'Breakfast'),
         ('Snacks', 'Snacks'),
     ]
 

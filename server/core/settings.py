@@ -1,13 +1,25 @@
 import os
+import tempfile
 import dj_database_url
 from pathlib import Path
 from datetime import timedelta
+from django.core.exceptions import ImproperlyConfigured
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-dev-key-change-this-in-production'
-DEBUG = True
-ALLOWED_HOSTS = ['*']
+DEBUG = os.environ.get('DJANGO_DEBUG', 'True' if os.environ.get('DJANGO_ENV', 'development').lower() != 'production' else 'False').lower() == 'true'
+
+SECRET_KEY = os.environ.get('SECRET_KEY')
+if not SECRET_KEY:
+    if os.environ.get('DJANGO_ENV', 'development').lower() == 'production':
+        raise ImproperlyConfigured('SECRET_KEY must be set in production.')
+    SECRET_KEY = 'django-insecure-dev-key-change-this-in-production'
+
+def _split_env(value, default=''):
+    raw = os.environ.get(value, default)
+    return [item.strip() for item in raw.split(',') if item.strip()]
+
+ALLOWED_HOSTS = _split_env('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1')
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -62,9 +74,12 @@ WSGI_APPLICATION = 'core.wsgi.application'
 
 # Database Configuration
 # Uses DATABASE_URL if available (Prod), else SQLite (Local)
+LOCAL_SQLITE_PATH = Path(tempfile.gettempdir()) / 'brewhaven-local.sqlite3'
 DATABASES = {
     'default': dj_database_url.config(
-        default='sqlite:///' + str(BASE_DIR / 'db.sqlite3'),
+        # Store the dev SQLite database in temp so Windows file locking in the
+        # workspace directory doesn't block local migrations.
+        default='sqlite:///' + str(LOCAL_SQLITE_PATH),
         conn_max_age=600
     )
 }
@@ -82,7 +97,7 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # DRF Config
@@ -102,10 +117,19 @@ SIMPLE_JWT = {
 }
 
 # CORS Config (Allow React Frontend)
-CORS_ALLOW_ALL_ORIGINS = True # Change to specific domain in production
+FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:5173')
+CORS_ALLOWED_ORIGINS = _split_env('CORS_ALLOWED_ORIGINS', FRONTEND_URL)
+CSRF_TRUSTED_ORIGINS = _split_env('CSRF_TRUSTED_ORIGINS', FRONTEND_URL)
 
 
 # Static Files (CSS, JavaScript, Images)
-STATIC_URL = 'static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+if not DEBUG:
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_SSL_REDIRECT = os.environ.get('SECURE_SSL_REDIRECT', 'True').lower() == 'true'

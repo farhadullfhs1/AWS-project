@@ -2,27 +2,31 @@
 
 This document records the deployment evidence for BrewHaven in a sanitized form.
 
-## What Was Verified
+## Verification Checklist
 
-- One AWS EC2 Free Tier instance was created and used for the deployment.
-- The instance was launched in `us-east-1`.
-- The app was served behind Nginx with Gunicorn running the Django backend.
-- A CloudWatch billing alarm was created with a `$0.01` threshold.
-- The deployment was later removed to avoid any further AWS charges.
+- AWS Free Tier EC2 deployment completed
+- Region used: `us-east-1`
+- Instance type used: `t3.micro`
+- Nginx served the frontend
+- Gunicorn served the Django backend
+- CloudWatch billing alarm configured at `$0.01`
+- Deployment later removed to avoid ongoing charges
 
-## Sanitized Evidence
+## Evidence Captured
 
-- EC2 console showed the instance in `running` state with `3/3 checks passed`.
-- CloudWatch alarm page showed `CoffeeShopEstimatedChargesAlarm` in `OK` state.
-- The public site returned `200 OK` at the root URL.
-- The API returned `200 OK` at `/api/products/`.
+- EC2 console showing the instance in `running` state with `3/3 checks passed`
+- CloudWatch alarm page showing `CoffeeShopEstimatedChargesAlarm` in `OK` state
+- Browser view of the BrewHaven homepage
+- Browser view of the BrewHaven menu page
+- Live endpoint response showing `200 OK` at `/api/products/`
 
-## Privacy Notes
+## Sanitization Rules
 
-- No AWS secret keys are stored here.
-- No account password, access token, or private billing identifier is included.
-- The screenshots used for resume proof should be redacted before publishing if they show browser tabs, AWS account IDs, or any other personal details.
+- Do not publish AWS access keys, secret keys, or session tokens
+- Do not include full account IDs or billing identifiers
+- Redact browser tabs, bookmark bars, and any personal account data
+- Crop the screenshots so only the useful proof remains
 
-## Suggested Resume Line
+## Resume Line
 
 `Screenshots and live endpoint test results available on request.`

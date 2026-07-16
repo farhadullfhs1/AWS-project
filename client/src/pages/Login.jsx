@@ -1,16 +1,23 @@
 import { useState } from "react";
-import { api } from "../services/api";
+import { api, setAuthSession } from "../services/api";
 import { useNavigate } from "react-router-dom";
 
 export default function Login() {
-  const [username, setUsername] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const nav = useNavigate();
 
   const login = () => {
-    api.post("auth/login/", { username, password })
+    api.post("auth/login/", { username: identifier, password })
       .then(res => {
-        localStorage.setItem("token", res.data.access);
+        setAuthSession({ access: res.data.access, refresh: res.data.refresh });
+        localStorage.setItem("brewhaven-user", JSON.stringify({
+          username: res.data.username || identifier,
+          email: res.data.email || "",
+          is_staff: !!res.data.is_staff,
+          staff_branch: res.data.staff_branch || "",
+          employee_id: res.data.employee_id || "",
+        }));
         nav("/");
       })
       .catch(() => alert("Invalid login"));
@@ -19,7 +26,7 @@ export default function Login() {
   return (
     <div>
       <h2>Login</h2>
-      <input placeholder="Username" onChange={e=>setUsername(e.target.value)} />
+      <input placeholder="Email or Username" onChange={e=>setIdentifier(e.target.value)} />
       <input type="password" placeholder="Password" onChange={e=>setPassword(e.target.value)} />
       <button onClick={login}>Login</button>
     </div>
