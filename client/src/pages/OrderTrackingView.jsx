@@ -75,7 +75,7 @@ export default function OrderTrackingView({ orders, selectedOrderId, isOffline, 
         </div>
       )}
 
-      <p className="text-center text-sm text-neutral-400 mb-4">Your pickup order is moving through the cafe queue and will update live as staff changes its status.</p>
+     
       <h1 className="text-3xl font-bold text-white text-center mb-8">
         {liveStage === 'ready' ? "It's ready! Come grab it ☕" :
          liveStage === 'preparing' ? "We're brewing your order" :

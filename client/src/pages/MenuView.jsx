@@ -53,7 +53,6 @@ export default function MenuView({ products, addToCart, isOffline, isLoading }) 
       </div>
       <div className="mb-6 flex items-center justify-between gap-4">
         <p className="text-sm text-neutral-500">{filteredProducts.length} item{filteredProducts.length === 1 ? '' : 's'} in this section</p>
-        <p className="text-xs uppercase tracking-[0.2em] text-neutral-600">Pickup friendly menu</p>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
         {isLoading ? Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />) : filteredProducts.map(product => (

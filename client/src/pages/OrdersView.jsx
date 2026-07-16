@@ -40,7 +40,7 @@ export default function OrdersView({ token, isOffline, cancelOrder, onTrackOrder
       <PageIntro
         eyebrow="Tracking"
         title="Follow every pickup order"
-        subtitle="See what is placed, preparing, and ready at the counter without digging through the backend."
+        
       />
 
       {Array.isArray(liveOrders) && liveOrders.length > 0 && (
