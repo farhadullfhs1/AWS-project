@@ -8,7 +8,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.exceptions import PermissionDenied
-from .models import CartItem, Order, OrderItem, StaffProfile
+from .models import CartItem, Order, OrderItem, StaffProfile, BRANCH_CHOICES
 from products.models import Product
 from .serializers import CartItemSerializer, OrderSerializer
 
@@ -69,7 +69,7 @@ class CreateOrderView(APIView):
 
         if fulfillment_type not in {'pickup', 'delivery'}:
             return Response({"error": "Invalid fulfillment_type"}, status=400)
-        if fulfillment_type == 'pickup' and pickup_branch not in dict(Order.BRANCH_CHOICES):
+        if fulfillment_type == 'pickup' and pickup_branch not in dict(BRANCH_CHOICES):
             return Response({"error": "Invalid pickup_branch"}, status=400)
 
         with transaction.atomic():
